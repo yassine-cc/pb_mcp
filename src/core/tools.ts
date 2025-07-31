@@ -57,4 +57,47 @@ export function registerTools(server: FastMCP) {
       }
     }
   });
+
+  // PocketBase: Get specific collection details
+  server.addTool({
+    name: "get_collection",
+    description: "Get detailed information about a specific collection from PocketBase",
+    parameters: z.object({
+      collectionName: z.string().describe("Name or ID of the collection to retrieve"),
+      adminToken: z.string().optional().describe("PocketBase admin token (or use POCKETBASE_ADMIN_TOKEN env var)"),
+      baseUrl: z.string().optional().describe("PocketBase base URL (or use POCKETBASE_URL env var, default: http://127.0.0.1:8090)")
+    }),
+    execute: async (params) => {
+      try {
+        const pb = getPocketBaseClient(params.adminToken, params.baseUrl);
+        
+        // Get specific collection details
+        const collection = await pb.collections.getOne(params.collectionName);
+        
+        return JSON.stringify({
+          success: true,
+          collection: {
+            id: collection.id,
+            name: collection.name,
+            type: collection.type,
+            schema: collection.schema,
+            listRule: collection.listRule,
+            viewRule: collection.viewRule,
+            createRule: collection.createRule,
+            updateRule: collection.updateRule,
+            deleteRule: collection.deleteRule,
+            options: collection.options,
+            created: collection.created,
+            updated: collection.updated
+          }
+        }, null, 2);
+      } catch (error) {
+        return JSON.stringify({
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error occurred',
+          details: 'Make sure the collection name/ID is correct, admin token is valid and PocketBase is running'
+        }, null, 2);
+      }
+    }
+  });
 }
