@@ -1,285 +1,375 @@
-# @mcpdotdirect/template-mcp-server
+# PocketBase MCP Server
 
 ![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6)
 
-A CLI tool to quickly get started building your very own MCP (Model Context Protocol) server using FastMCP
+A Model Context Protocol (MCP) server that provides comprehensive access to PocketBase functionality. This server enables AI assistants and other MCP clients to interact with PocketBase databases for authentication, data management, and administrative operations.
 
-## 📋 Usage
+## Features
+
+- **Authentication**: Admin and user authentication with session management
+- **Session Persistence**: Save sessions across tool calls with `saveSession` parameter
+- **Auto-Authentication**: Automatically authenticate at startup using environment variables
+- **Collection Management**: Create, update, delete, and query collections (admin only)
+- **Record CRUD**: Full create, read, update, delete operations on records
+- **User Management**: Manage user accounts in auth collections
+- **Custom Headers**: Send custom HTTP headers with any request
+- **Query Support**: Filtering, sorting, and pagination for records and users
+- **Error Handling**: Consistent, informative error responses
+- **Multi-Instance**: Support for connecting to multiple PocketBase instances
+- **TOON Output Format**: Optional TOON format for 30-60% token reduction with LLMs
+
+## Installation
 
 ```bash
-# with npx
-npx @mcpdotdirect/create-mcp-server
+# Clone the repository
+git clone https://github.com/ssakone/pocketbase-mcp-server.git
+cd pocketbase-mcp-server
 
-# Or with npm
-npm init @mcpdotdirect/mcp-server
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
 ```
 
-## 🔭 What's Included
+## Configuration
 
-The template includes:
+### Environment Variables
 
-- Basic server setup with both stdio and HTTP transport options using FastMCP
-- Structure for defining MCP tools, resources, and prompts
-- TypeScript configuration
-- Development scripts and configuration
-
-## ✨ Features
-
-- **FastMCP**: Built using the FastMCP framework for simpler implementation
-- **Dual Transport Support**: Run your MCP server over stdio or HTTP
-- **TypeScript**: Full TypeScript support for type safety
-- **Extensible**: Easy to add custom tools, resources, and prompts
-
-## 🚀 Getting Started
-
-After creating your project:
-
-1. Install dependencies using your preferred package manager:
-   ```bash
-   # Using npm
-   npm install
-   
-   # Using yarn
-   yarn
-   
-   # Using pnpm
-   pnpm install
-   
-   # Using bun
-   bun install
-   ```
-
-2. Start the server:
-   ```bash
-   # Start the stdio server
-   npm start
-   
-   # Or start the HTTP server
-   npm run start:http
-   ```
-
-3. For development with auto-reload:
-   ```bash
-   # Development mode with stdio
-   npm run dev
-   
-   # Development mode with HTTP
-   npm run dev:http
-   ```
-
-> **Note**: The default scripts in package.json use Bun as the runtime (e.g., `bun run src/index.ts`). If you prefer to use a different package manager or runtime, you can modify these scripts in your package.json file to use Node.js or another runtime of your choice.
-
-## 📖 Detailed Usage
-
-### Transport Methods
-
-The MCP server supports two transport methods:
-
-1. **stdio Transport** (Command Line Mode):
-   - Runs on your **local machine**
-   - Managed automatically by Cursor
-   - Communicates directly via `stdout`
-   - Only accessible by you locally
-   - Ideal for personal development and tools
-
-2. **SSE Transport** (HTTP Web Mode):
-   - Can run **locally or remotely**
-   - Managed and run by you
-   - Communicates **over the network**
-   - Can be **shared** across machines
-   - Ideal for team collaboration and shared tools
-
-### Running the Server Locally
-
-#### stdio Transport (CLI Mode)
-
-Start the server in stdio mode for CLI tools:
+Create a `.env` file or set environment variables:
 
 ```bash
-# Start the stdio server
+# PocketBase server URL (default: http://127.0.0.1:8090)
+POCKETBASE_URL=http://127.0.0.1:8090
+
+# Admin token for authenticated operations (optional - can be provided per-request)
+POCKETBASE_ADMIN_TOKEN=your_admin_token_here
+
+# Auto-authentication at startup (optional)
+# If both are provided, the server will authenticate and obtain a token automatically
+POCKETBASE_ADMIN_EMAIL=admin@example.com
+POCKETBASE_ADMIN_PASSWORD=your_admin_password
+
+# Output format: json (default) or toon
+# TOON format reduces token usage by 30-60% when communicating with LLMs
+MCP_OUTPUT_FORMAT=json
+```
+
+### Configuration File
+
+Alternatively, create a `pocketbase.config.json`:
+
+```json
+{
+  "pocketbaseUrl": "http://127.0.0.1:8090",
+  "pocketbaseAdminToken": "your_admin_token_here"
+}
+```
+
+## Running the Server
+
+### stdio Mode (for MCP clients like Cursor, Kiro)
+
+```bash
 npm start
-# or with other package managers
-yarn start
-pnpm start
-bun start
-
-# Start the server in development mode with auto-reload
-npm run dev
-# or
-yarn dev
-pnpm dev
-bun dev
 ```
 
-#### HTTP Transport (Web Mode)
-
-Start the server in HTTP mode for web applications:
+### HTTP/SSE Mode (for web clients and remote access)
 
 ```bash
-# Start the HTTP server
+# Default port 3001
 npm run start:http
-# or
-yarn start:http
-pnpm start:http
-bun start:http
 
-# Start the HTTP server in development mode with auto-reload
-npm run dev:http
-# or
-yarn dev:http
-pnpm dev:http
-bun dev:http
-```
-
-By default, the HTTP server runs on port 3001. You can change this by setting the PORT environment variable:
-
-```bash
-# Start the HTTP server on a custom port
+# Custom port
 PORT=8080 npm run start:http
 ```
 
-### Connecting to the Server
+The HTTP server exposes an SSE endpoint at `http://localhost:3001/sse`.
 
-#### Connecting from Cursor
+## MCP Client Configuration
 
-To connect to your MCP server from Cursor:
+### Cursor/Kiro Configuration
 
-1. Open Cursor and go to Settings (gear icon in the bottom left)
-2. Click on "Features" in the left sidebar
-3. Scroll down to "MCP Servers" section
-4. Click "Add new MCP server"
-5. Enter the following details:
-   - Server name: `my-mcp-server` (or any name you prefer)
-   - For stdio mode:
-     - Type: `command`
-     - Command: The path to your server executable, e.g., `npm start`
-   - For SSE mode:
-     - Type: `url`
-     - URL: `http://localhost:3001/sse`
-6. Click "Save"
-
-#### Using mcp.json with Cursor
-
-For a more portable configuration, create an `.cursor/mcp.json` file in your project's root directory:
+Add to your MCP configuration:
 
 ```json
 {
   "mcpServers": {
-    "my-mcp-stdio": {
+    "pocketbase": {
       "command": "npm",
-      "args": [
-        "start"
-      ],
+      "args": ["start"],
+      "cwd": "/path/to/pocketbase-mcp-server",
       "env": {
-        "NODE_ENV": "development"
+        "POCKETBASE_URL": "http://127.0.0.1:8090",
+        "POCKETBASE_ADMIN_EMAIL": "admin@example.com",
+        "POCKETBASE_ADMIN_PASSWORD": "your_password"
       }
-    },
-    "my-mcp-sse": {
-      "url": "http://localhost:3001/sse"
     }
   }
 }
 ```
 
-You can also create a global configuration at `~/.cursor/mcp.json` to make your MCP servers available in all your Cursor workspaces.
+## Available Tools
 
-Note: 
-- The `command` type entries run the server in stdio mode
-- The `url` type entry connects to the HTTP server using SSE transport
-- You can provide environment variables using the `env` field
-- When connecting via SSE with FastMCP, use the full URL including the `/sse` path: `http://localhost:3001/sse`
+### Authentication Tools
 
-### Testing Your Server with CLI Tools
+#### `authenticate_admin`
+Authenticate as a PocketBase admin with full access to all operations.
 
-FastMCP provides built-in tools for testing your server:
+```json
+{
+  "email": "admin@example.com",
+  "password": "adminpassword",
+  "baseUrl": "http://127.0.0.1:8090",
+  "saveSession": true
+}
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `email` | string | Admin email address |
+| `password` | string | Admin password |
+| `baseUrl` | string | PocketBase URL (optional) |
+| `saveSession` | boolean | Save session for subsequent requests (default: true) |
+
+#### `authenticate_user`
+Authenticate as a regular user with permissions based on collection rules.
+
+```json
+{
+  "email": "user@example.com",
+  "password": "userpassword",
+  "collection": "users",
+  "baseUrl": "http://127.0.0.1:8090",
+  "saveSession": true
+}
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `email` | string | User email address |
+| `password` | string | User password |
+| `collection` | string | Auth collection name (default: "users") |
+| `baseUrl` | string | PocketBase URL (optional) |
+| `saveSession` | boolean | Save session for subsequent requests (default: true) |
+
+#### `logout`
+Clear the current authentication session.
+
+#### `check_auth_status`
+Check if there's an active authentication session.
+
+### Collection Management Tools (Admin Only)
+
+#### `list_collections`
+Get all collections with their metadata.
+
+#### `get_collection`
+Get detailed information about a specific collection.
+
+#### `create_collection`
+Create a new collection with schema definition.
+
+```json
+{
+  "name": "posts",
+  "type": "base",
+  "schema": [
+    { "name": "title", "type": "text", "required": true },
+    { "name": "content", "type": "editor", "required": false },
+    { "name": "published", "type": "bool", "required": false }
+  ],
+  "listRule": "",
+  "viewRule": "",
+  "createRule": "@request.auth.id != ''",
+  "updateRule": "@request.auth.id != ''",
+  "deleteRule": "@request.auth.id != ''"
+}
+```
+
+#### `update_collection`
+Update an existing collection's schema or rules.
+
+#### `delete_collection`
+Delete a collection and all its records.
+
+### Record CRUD Tools
+
+All record tools support custom headers via the `headers` parameter.
+
+#### `list_records`
+Query records with filtering, sorting, and pagination.
+
+```json
+{
+  "collection": "posts",
+  "filter": "published = true && created > '2024-01-01'",
+  "sort": "-created,title",
+  "page": 1,
+  "perPage": 20,
+  "expand": "author",
+  "headers": { "X-Custom-Header": "value" }
+}
+```
+
+#### `get_record`
+Get a single record by ID.
+
+```json
+{
+  "collection": "posts",
+  "id": "record_id_here",
+  "expand": "author,comments"
+}
+```
+
+#### `create_record`
+Create a new record in a collection.
+
+```json
+{
+  "collection": "posts",
+  "data": {
+    "title": "My First Post",
+    "content": "Hello, world!",
+    "published": true
+  }
+}
+```
+
+#### `update_record`
+Update an existing record.
+
+#### `delete_record`
+Delete a record from a collection.
+
+### User Management Tools
+
+User management tools respect PocketBase collection rules. Admin token is optional and only needed for privileged operations.
+
+#### `list_users`
+List users from an auth collection with filtering.
+
+```json
+{
+  "collection": "users",
+  "filter": "verified = true",
+  "sort": "-created",
+  "page": 1,
+  "perPage": 20,
+  "headers": { "X-Custom-Header": "value" }
+}
+```
+
+#### `get_user`
+Get a single user by ID.
+
+#### `create_user`
+Create a new user account.
+
+```json
+{
+  "collection": "users",
+  "email": "newuser@example.com",
+  "password": "securepassword123",
+  "passwordConfirm": "securepassword123",
+  "emailVisibility": false,
+  "verified": true,
+  "name": "John Doe"
+}
+```
+
+#### `update_user`
+Update an existing user.
+
+#### `delete_user`
+Delete a user account.
+
+## Common Parameters
+
+Most tools accept these optional parameters:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `baseUrl` | string | PocketBase server URL |
+| `adminToken` | string | Admin token for privileged access |
+| `headers` | object | Custom HTTP headers to send with the request |
+
+## Error Handling
+
+All tools return consistent error responses:
+
+```json
+{
+  "success": false,
+  "error": "Human-readable error message",
+  "code": "ERROR_CODE",
+  "details": { "field": "specific error details" },
+  "suggestion": "How to fix the error"
+}
+```
+
+### Error Codes
+
+| Code | Description |
+|------|-------------|
+| `AUTH_INVALID` | Invalid credentials |
+| `AUTH_REQUIRED` | Authentication required |
+| `FORBIDDEN` | Insufficient permissions |
+| `NOT_FOUND` | Resource not found |
+| `VALIDATION_ERROR` | Invalid input data |
+| `NETWORK_ERROR` | Connection issues |
+| `UNKNOWN_ERROR` | Unexpected error |
+
+## PocketBase Filter Syntax
+
+The `filter` parameter uses PocketBase's filter syntax:
+
+```
+# Equality
+status = 'active'
+
+# Comparison
+created > '2024-01-01'
+price >= 100
+
+# Logical operators
+status = 'active' && published = true
+category = 'tech' || category = 'science'
+
+# Contains/Like
+title ~ 'hello'      # contains
+title !~ 'spam'      # not contains
+
+# Null checks
+avatar = null
+avatar != null
+
+# Relations
+author.name = 'John'
+```
+
+## Development
 
 ```bash
-# Test with mcp-cli
-npx fastmcp dev server.js
+# Run in development mode with auto-reload
+npm run dev
 
-# Inspect with MCP Inspector
-npx fastmcp inspect server.ts
+# Run tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Build for production
+npm run build
 ```
 
-### Using Environment Variables
+## Author
 
-You can customize the server using environment variables:
+Abdramane Sakone
 
-```bash
-# Change the HTTP port (default is 3001)
-PORT=8080 npm run start:http
+## License
 
-# Change the host binding (default is 0.0.0.0)
-HOST=127.0.0.1 npm run start:http
-```
-
-## 🛠️ Adding Custom Tools and Resources
-
-When adding custom tools, resources, or prompts to your FastMCP server:
-
-### Tools
-
-```typescript
-server.addTool({
-  name: "hello_world",
-  description: "A simple hello world tool",
-  parameters: z.object({
-    name: z.string().describe("Name to greet")
-  }),
-  execute: async (params) => {
-    return `Hello, ${params.name}!`;
-  }
-});
-```
-
-### Resources
-
-```typescript
-server.addResourceTemplate({
-  uriTemplate: "example://{id}",
-  name: "Example Resource",
-  mimeType: "text/plain",
-  arguments: [
-    {
-      name: "id",
-      description: "Resource ID",
-      required: true,
-    },
-  ],
-  async load({ id }) {
-    return {
-      text: `This is an example resource with ID: ${id}`
-    };
-  }
-});
-```
-
-### Prompts
-
-```typescript
-server.addPrompt({
-  name: "greeting",
-  description: "A simple greeting prompt",
-  arguments: [
-    {
-      name: "name",
-      description: "Name to greet",
-      required: true,
-    },
-  ],
-  load: async ({ name }) => {
-    return `Hello, ${name}! How can I help you today?`;
-  }
-});
-```
-
-## 📚 Documentation
-
-For more information about FastMCP, visit [FastMCP GitHub Repository](https://github.com/punkpeye/fastmcp).
-
-For more information about the Model Context Protocol, visit the [MCP Documentation](https://modelcontextprotocol.io/introduction).
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) for details.

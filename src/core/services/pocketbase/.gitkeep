@@ -1,0 +1,9 @@
+# PocketBase Services Directory
+
+This directory contains all PocketBase-related service implementations:
+- Authentication Service
+- Collection Service
+- Record Service
+- User Service
+- Client Factory
+- Error Handler

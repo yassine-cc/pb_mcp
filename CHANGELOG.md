@@ -1,3 +1,25 @@
+## [2.1.0] (2025-11-28)
+
+### Features
+
+* Add `saveSession` parameter to `authenticate_admin` and `authenticate_user` tools
+* Add custom HTTP headers support for all record and user operations
+* Add auto-authentication at startup via `POCKETBASE_ADMIN_EMAIL` and `POCKETBASE_ADMIN_PASSWORD` env vars
+* Preserve user session across tool calls when authenticated
+* Remove forced admin authentication requirement for user operations (let PocketBase rules handle permissions)
+
+### Bug Fixes
+
+* Fix session persistence issue where authenticated client was not reused
+* Fix URL normalization for consistent client store lookup
+* Fix `isAdminAuthenticated` to properly detect admin users from saved sessions
+
+### Contributors
+
+* Abdramane Sakone
+
+---
+
 ## [2.0.1](https://github.com/mcpdotdirect/template-mcp-server/compare/v2.0.0...v2.0.1) (2025-04-01)
 
 

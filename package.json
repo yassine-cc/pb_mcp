@@ -25,8 +25,13 @@
     "build:http": "bun build src/server/http-server.ts --outdir build --target node --outfile http-server.js",
     "dev": "node --loader ts-node/esm --watch src/index.ts",
     "dev:bun": "bun --watch src/index.ts",
-    "start:http": "bun run src/server/http-server.ts",
+    "start:http": "npm run build && node dist/server/http-server.js",
+    "start:http:bun": "bun run src/server/http-server.ts",
     "dev:http": "bun --watch src/server/http-server.ts",
+    "test": "vitest --run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --run --coverage",
     "prepublishOnly": "bun run build && bun run build:http",
     "version:patch": "npm version patch",
     "version:minor": "npm version minor",
@@ -64,8 +69,11 @@
     "@types/bun": "latest",
     "@types/cors": "^2.8.17",
     "@types/node": "^20.17.24",
+    "@vitest/ui": "^4.0.14",
     "conventional-changelog-cli": "^5.0.0",
-    "ts-node": "^10.9.2"
+    "fast-check": "^4.3.0",
+    "ts-node": "^10.9.2",
+    "vitest": "^4.0.14"
   },
   "peerDependencies": {
     "@valibot/to-json-schema": "^1.0.0",
@@ -73,6 +81,7 @@
     "typescript": "^5.8.2"
   },
   "dependencies": {
+    "@toon-format/toon": "^2.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
     "fastmcp": "^1.21.0",

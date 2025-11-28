@@ -1,4 +1,7 @@
 {
-  "pocketbaseAdminToken": "PASTE_YOUR_ADMIN_TOKEN_HERE",
-  "pocketbaseUrl": "http://127.0.0.1:8090"
-} 
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "PocketBase MCP Server Configuration",
+  
+  "pocketbaseUrl": "http://127.0.0.1:8090",
+  "pocketbaseAdminToken": "your_admin_token_here"
+}
