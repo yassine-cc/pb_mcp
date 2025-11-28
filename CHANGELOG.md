@@ -1,3 +1,19 @@
+## [2.2.0] (2025-11-28)
+
+### Features
+
+* Add `send_custom_request` tool for raw HTTP requests to any PocketBase API endpoint
+* Support all authentication types (admin, user, public) for custom requests
+* Add comprehensive prompt `pocketbase_custom_request` to help construct custom requests
+* Maintain session state across custom HTTP requests
+* Support for advanced PocketBase API features (real-time, file uploads, custom validation)
+
+### Improvements
+
+* Enhanced documentation with extensive custom request examples
+* Better error handling for HTTP requests with method/endpoint context
+* Flexible authentication fallback (session → env token → explicit token)
+
 ## [2.1.0] (2025-11-28)
 
 ### Features

@@ -936,4 +936,89 @@ export function registerTools(server: FastMCP) {
       }
     },
   });
+
+  // ============================================
+  // Custom HTTP Requests Tool
+  // Allows any authenticated user to send custom HTTP requests
+  // ============================================
+
+  server.addTool({
+    name: "send_custom_request",
+    description: "Send raw HTTP requests to PocketBase API endpoints. Supports any authenticated user (admin or regular user) and maintains session state.",
+    parameters: z.object({
+      method: z.enum(["GET", "POST", "PUT", "PATCH", "DELETE"]).describe("HTTP method"),
+      endpoint: z.string().describe("API endpoint (e.g., '/api/collections/posts/records', '/api/users')"),
+      body: z.any().optional().describe("Request body for POST/PUT/PATCH requests"),
+      queryParams: z.record(z.string()).optional().describe("URL query parameters"),
+      headers: z.record(z.string()).optional().describe("Custom HTTP headers to send with the request"),
+      baseUrl: z.string().optional().describe("PocketBase base URL (or use POCKETBASE_URL env var, default: http://127.0.0.1:8090)"),
+      adminToken: z.string().optional().describe("Optional admin token for privileged endpoints (or use current session)")
+    }),
+    execute: async (params) => {
+      try {
+        // Use getOrCreateClient to support any authentication type (admin, user, or none)
+        const pb = getOrCreateClient(params.baseUrl);
+
+        // If explicit admin token provided, override current auth
+        if (params.adminToken) {
+          pb.authStore.save(params.adminToken, null);
+        } else if (!pb.authStore.isValid && process.env.POCKETBASE_ADMIN_TOKEN) {
+          // Fallback to env token if no valid session
+          pb.authStore.save(process.env.POCKETBASE_ADMIN_TOKEN, null);
+        }
+
+        console.error(`[send_custom_request] ${params.method} ${params.endpoint} - Auth: ${pb.authStore.isValid ? 'Valid' : 'None'}`);
+
+        // Build full URL
+        const url = params.endpoint.startsWith('/') ? params.endpoint : `/${params.endpoint}`;
+        
+        // Build the full URL with query parameters
+        let fullUrl = url;
+        if (params.queryParams && Object.keys(params.queryParams).length > 0) {
+          const queryString = new URLSearchParams(params.queryParams).toString();
+          fullUrl += (url.includes('?') ? '&' : '?') + queryString;
+        }
+
+        // Prepare request options
+        const requestOptions: any = {
+          method: params.method,
+          headers: {
+            ...params.headers
+          }
+        };
+
+        // Add body for POST/PUT/PATCH requests
+        if (params.body && ['POST', 'PUT', 'PATCH'].includes(params.method)) {
+          if (params.headers?.['Content-Type'] === 'multipart/form-data') {
+            // Handle multipart form data
+            requestOptions.body = params.body;
+          } else {
+            // Default to JSON
+            requestOptions.headers['Content-Type'] = 'application/json';
+            requestOptions.body = JSON.stringify(params.body);
+          }
+        }
+
+        // Use PocketBase's built-in fetch method
+        const response = await pb.send(fullUrl, requestOptions);
+
+        return formatOutput({
+          success: true,
+          method: params.method,
+          endpoint: params.endpoint,
+          statusCode: response.status || 200,
+          data: response.data || response,
+          headers: response.headers || {}
+        });
+
+      } catch (error) {
+        const errorResponse = handleError(error);
+        return formatOutput({
+          ...errorResponse,
+          method: params.method,
+          endpoint: params.endpoint
+        });
+      }
+    },
+  });
 }

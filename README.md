@@ -14,6 +14,7 @@ A Model Context Protocol (MCP) server that provides comprehensive access to Pock
 - **Record CRUD**: Full create, read, update, delete operations on records
 - **User Management**: Manage user accounts in auth collections
 - **Custom Headers**: Send custom HTTP headers with any request
+- **Custom HTTP Requests**: Send raw HTTP requests to any PocketBase API endpoint
 - **Query Support**: Filtering, sorting, and pagination for records and users
 - **Error Handling**: Consistent, informative error responses
 - **Multi-Instance**: Support for connecting to multiple PocketBase instances
@@ -285,6 +286,165 @@ Update an existing user.
 
 #### `delete_user`
 Delete a user account.
+
+### Custom HTTP Requests Tool
+
+#### `send_custom_request`
+Send raw HTTP requests to any PocketBase API endpoint. Supports all authentication types (admin, user, or public) and maintains session state across requests.
+
+```json
+{
+  "method": "GET",
+  "endpoint": "/api/collections/posts/records",
+  "queryParams": {
+    "filter": "status='published'",
+    "sort": "-created",
+    "perPage": "10"
+  },
+  "headers": {
+    "X-Custom-Header": "value"
+  }
+}
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `method` | string | HTTP method: GET, POST, PUT, PATCH, DELETE |
+| `endpoint` | string | API endpoint (e.g., '/api/collections/posts/records') |
+| `body` | object | Request body for POST/PUT/PATCH requests |
+| `queryParams` | object | URL query parameters |
+| `headers` | object | Custom HTTP headers |
+| `baseUrl` | string | PocketBase URL (optional) |
+| `adminToken` | string | Admin token for privileged endpoints (optional) |
+
+**Examples:**
+
+**Get published posts with custom filtering:**
+```json
+{
+  "method": "GET",
+  "endpoint": "/api/collections/posts/records",
+  "queryParams": {
+    "filter": "status='published' && created > '2024-01-01'",
+    "sort": "-created",
+    "expand": "author,category",
+    "perPage": "20"
+  }
+}
+```
+
+**Create a new record with custom data:**
+```json
+{
+  "method": "POST",
+  "endpoint": "/api/collections/posts/records",
+  "body": {
+    "title": "My Custom Post",
+    "content": "This was created via custom request",
+    "status": "draft",
+    "author": "user123"
+  }
+}
+```
+
+**Admin-only settings request:**
+```json
+{
+  "method": "GET",
+  "endpoint": "/api/settings",
+  "adminToken": "your_admin_token_here"
+}
+```
+
+**Custom file upload:**
+```json
+{
+  "method": "POST",
+  "endpoint": "/api/collections/users/records/user123",
+  "headers": {
+    "Content-Type": "multipart/form-data"
+  },
+  "body": {
+    "avatar": "file_data_here"
+  }
+}
+```
+
+The `send_custom_request` tool supports multiple authentication methods:
+- **Current Session**: Uses existing authentication (admin or user)
+- **Environment Token**: Falls back to `POCKETBASE_ADMIN_TOKEN` if set
+- **Explicit Token**: Provide `adminToken` parameter for admin operations
+- **No Auth**: Public endpoints don't require authentication
+
+## Custom Request Examples
+
+### Advanced Filtering with Aggregation
+```json
+{
+  "method": "GET",
+  "endpoint": "/api/collections/orders/records",
+  "queryParams": {
+    "filter": "status='completed' && total > 100",
+    "sort": "-total",
+    "fields": "id,user,total,status,created",
+    "expand": "user",
+    "perPage": "50"
+  }
+}
+```
+
+### Batch Operations with Custom Logic
+```json
+{
+  "method": "POST",
+  "endpoint": "/api/collections/posts/records",
+  "body": {
+    "title": "Batch Created Post",
+    "content": "Created via custom request",
+    "tags": ["automated", "custom"],
+    "published": true,
+    "author": "{{current_user_id}}"
+  }
+}
+```
+
+### Custom Validation Endpoint
+```json
+{
+  "method": "POST",
+  "endpoint": "/api/collections/users/records/validate",
+  "body": {
+    "email": "test@example.com",
+    "password": "secure123"
+  }
+}
+```
+
+### Health Check with Custom Headers
+```json
+{
+  "method": "GET",
+  "endpoint": "/api/health",
+  "headers": {
+    "X-Client-Version": "1.0.0",
+    "X-Request-ID": "custom-request-123"
+  }
+}
+```
+
+### Advanced Analytics Query
+```json
+{
+  "method": "GET",
+  "endpoint": "/api/collections/analytics/records",
+  "queryParams": {
+    "filter": "date > '2024-01-01' && event_type='user_action'",
+    "sort": "-date",
+    "groupBy": "event_type",
+    "having": "count(*) > 10"
+  }
+}
+```
 
 ## Common Parameters
 

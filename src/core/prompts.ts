@@ -265,4 +265,134 @@ fields: "id,title,created,expand.author.name"
 Please provide the complete query parameters for my goal.`;
     },
   });
+
+  // Custom HTTP requests prompt
+  server.addPrompt({
+    name: "pocketbase_custom_request",
+    description: "Help construct custom HTTP requests to PocketBase API endpoints",
+    arguments: [
+      {
+        name: "goal",
+        description: "What do you want to achieve with the custom request? (e.g., 'get user statistics', 'batch update records')",
+        required: true,
+      },
+      {
+        name: "method",
+        description: "HTTP method (GET, POST, PUT, PATCH, DELETE)",
+        required: false,
+      },
+      {
+        name: "collection",
+        description: "Collection name (if applicable)",
+        required: false,
+      },
+    ],
+    load: async ({ goal, method, collection }) => {
+      return `Help me construct a custom HTTP request to PocketBase.
+
+**Goal:** ${goal}
+${method ? `**Method:** ${method}` : ""}
+${collection ? `**Collection:** ${collection}` : ""}
+
+## PocketBase API Endpoints Reference
+
+### Collections Management
+- **GET** /api/collections - List all collections
+- **GET** /api/collections/{collection} - Get collection details
+- **POST** /api/collections - Create collection (admin only)
+- **PUT** /api/collections/{collection} - Update collection (admin only)
+- **DELETE** /api/collections/{collection} - Delete collection (admin only)
+
+### Records CRUD
+- **GET** /api/collections/{collection}/records - List records
+- **GET** /api/collections/{collection}/records/{id} - Get single record
+- **POST** /api/collections/{collection}/records - Create record
+- **PUT** /api/collections/{collection}/records/{id} - Update record
+- **DELETE** /api/collections/{collection}/records/{id} - Delete record
+
+### Authentication
+- **POST** /api/collections/{auth-collection}/auth-with-password - Login
+- **POST** /api/collections/{auth-collection}/auth-refresh - Refresh token
+- **POST** /api/collections/{auth-collection}/auth-with-oauth2 - OAuth login
+- **DELETE** /api/collections/{auth-collection}/auth-refresh - Logout
+
+### Users Management
+- **GET** /api/collections/{auth-collection}/records - List users
+- **GET** /api/collections/{auth-collection}/records/{id} - Get user
+- **POST** /api/collections/{auth-collection}/records - Create user
+- **PUT** /api/collections/{auth-collection}/records/{id} - Update user
+- **DELETE** /api/collections/{auth-collection}/records/{id} - Delete user
+
+### Files
+- **GET** /api/files/{collection}/{recordId}/{fieldName}/{fileName} - Download file
+- **POST** /api/collections/{collection}/records/{id} - Upload file (multipart/form-data)
+
+### Real-time
+- **GET** /api/realtime - WebSocket connection endpoint
+
+### Health & Settings
+- **GET** /api/health - Health check
+- **GET** /api/settings - Get settings (admin only)
+- **PUT** /api/settings - Update settings (admin only)
+
+## Request Examples
+
+### Simple GET Request
+\`\`\`json
+{
+  "method": "GET",
+  "endpoint": "/api/collections/posts/records",
+  "queryParams": {
+    "filter": "status='published'",
+    "sort": "-created",
+    "perPage": "10"
+  }
+}
+\`\`\`
+
+### POST with Body
+\`\`\`json
+{
+  "method": "POST",
+  "endpoint": "/api/collections/posts/records",
+  "body": {
+    "title": "My Post",
+    "content": "Post content",
+    "status": "draft"
+  }
+}
+\`\`\`
+
+### Authenticated Request (uses current session)
+\`\`\`json
+{
+  "method": "GET",
+  "endpoint": "/api/collections/users/records",
+  "headers": {
+    "X-Custom-Header": "value"
+  }
+}
+\`\`\`
+
+### Admin-only Request
+\`\`\`json
+{
+  "method": "GET",
+  "endpoint": "/api/settings",
+  "adminToken": "your_admin_token_here"
+}
+\`\`\`
+
+## Authentication Support
+
+The send_custom_request tool supports multiple authentication methods:
+
+1. **Current Session**: Uses existing authentication (admin or user)
+2. **Environment Token**: Falls back to POCKETBASE_ADMIN_TOKEN if set
+3. **Explicit Token**: Provide adminToken parameter for admin operations
+4. **No Auth**: Public endpoints don't require authentication
+
+Please provide the specific request details for my goal.`;
+    },
+  });
 }
