@@ -5,9 +5,13 @@
   "description": "MCP server for PocketBase",
   "private": true,
   "main": "dist/index.js",
+  "bin": {
+    "pb-mcp": "./dist/pb-mcp.js",
+    "pb-mcp-http": "./dist/pb-mcp-http.js"
+  },
   "scripts": {
     "start": "npm run build && node dist/index.js",
-    "build": "npx tsc",
+    "build": "tsup",
     "dev": "node --loader ts-node/esm --watch src/index.ts",
     "start:http": "npm run build && node dist/server/http-server.js",
     "test": "vitest --run",
@@ -21,6 +25,7 @@
     "@vitest/ui": "^4.0.14",
     "fast-check": "^4.3.0",
     "ts-node": "^10.9.2",
+    "tsup": "^8.3.5",
     "typescript": "^5.8.2",
     "vitest": "^4.0.14"
   },
